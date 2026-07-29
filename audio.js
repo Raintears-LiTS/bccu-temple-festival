@@ -86,12 +86,17 @@ class AudioManager {
     if (this.unlocked) return;
     this.unlocked = true;
     Object.values(this.tracks).forEach(({ el }) => {
-      const p = el.play();
-      if (p && p.then) {
-        p.then(() => el.pause()).catch(() => { /* file missing/blocked — ignore */ });
-      } else {
+      try {
+        const p = el.play();
+        // Pause synchronously, in the same tick — not inside the play()
+        // promise's .then(). Pausing from a delayed .then() can land
+        // *after* a playBgm()/fade call made later in the same click
+        // handler has already started playing the same element, which
+        // would silently stop it again and look like "BGM never plays".
         el.pause();
-      }
+        el.currentTime = 0;
+        if (p && p.catch) p.catch(() => { /* blocked/missing file — ignore */ });
+      } catch (e) { /* ignore — some browsers throw on immediate pause */ }
     });
   }
 
