@@ -165,6 +165,10 @@ button{font-family:'Kanit',sans-serif;}
 .audio-btn:active{transform:scale(.92);}
 .audio-btn:focus-visible{outline:3px solid var(--teal);outline-offset:2px;}
 .audio-btn.small{width:34px;height:34px;margin-top:4px;}
+.sound-wave{opacity:1;transition:opacity .15s ease;}
+.mute-slash{opacity:0;transition:opacity .15s ease;}
+.audio-btn.is-muted .sound-wave{opacity:0;}
+.audio-btn.is-muted .mute-slash{opacity:1;}
 #audio-panel{
   position:absolute;top:52px;right:0;
   width:210px;
