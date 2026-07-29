@@ -40,10 +40,9 @@ button{font-family:'Kanit',sans-serif;}
   fill:none;stroke:rgba(120,90,60,.55);stroke-width:1.5;
 }
 .bulb-dot{
-  animation:flicker 2.2s ease-in-out infinite;
-  transform-origin:center;
+  animation:flicker 3.6s ease-in-out infinite;
 }
-@keyframes flicker{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.82);}}
+@keyframes flicker{0%,100%{opacity:1;}50%{opacity:.32;}}
 
 /* sparse hanging stars, spaced far apart */
 .hang-star{
@@ -341,24 +340,37 @@ h1{
   to{opacity:1;transform:scale(1);}
 }
 
-.feedback{
-  margin-top:20px;
+/* toast: pops up as its own separate beat after a choice, then fades before the scene changes */
+.scene-toast{
+  position:fixed;
+  left:50%;top:50%;
+  transform:translate(-50%,-30%) scale(.85);
+  z-index:15;
+  pointer-events:none;
+  opacity:0;
+  text-align:center;
+  width:min(86vw,480px);
+}
+.scene-toast.show{
+  animation:toast-cycle 2s cubic-bezier(.34,1.1,.4,1) forwards;
+}
+.scene-toast p{
+  margin:0;
   display:inline-block;
-  font-family:'Kanit',sans-serif;font-weight:600;
-  font-size:1.05rem;color:#2a1305;
+  font-family:'Kanit',sans-serif;font-weight:700;
+  font-size:clamp(1.15rem,3.6vw,1.6rem);
+  color:#2a1305;
   background:linear-gradient(135deg,var(--gold-soft),var(--gold));
-  padding:10px 24px;
-  border-radius:999px;
-  box-shadow:0 10px 26px -8px rgba(244,185,66,.65);
-  opacity:0;transform:translateY(10px) scale(.88);
+  padding:16px 30px;
+  border-radius:20px;
+  box-shadow:0 24px 60px -14px rgba(244,185,66,.65), 0 0 0 1px rgba(255,255,255,.18) inset;
 }
-.feedback.show{
-  animation:feedback-pop .5s cubic-bezier(.34,1.56,.64,1) forwards;
-}
-@keyframes feedback-pop{
-  0%{opacity:0;transform:translateY(10px) scale(.85);}
-  60%{opacity:1;transform:translateY(-3px) scale(1.06);}
-  100%{opacity:1;transform:translateY(0) scale(1);}
+@keyframes toast-cycle{
+  0%{opacity:0; transform:translate(-50%,-22%) scale(.82);}
+  16%{opacity:1; transform:translate(-50%,-52%) scale(1.05);}
+  26%{opacity:1; transform:translate(-50%,-50%) scale(1);}
+  76%{opacity:1; transform:translate(-50%,-56%) scale(1);}
+  100%{opacity:0; transform:translate(-50%,-78%) scale(.95);}
 }
 
 /* ---------- ENDING ---------- */
