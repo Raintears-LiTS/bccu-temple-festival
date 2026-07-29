@@ -339,7 +339,10 @@ function setRain(active){
   rainActive = active;
   rainEl.classList.toggle('active', active);
   splashLayer.classList.toggle('active', active);
-  fairAudio.crossfadeAmbient(active ? 'rain' : 'festival', 1400);
+  // scene 1 (index 0) = still at the entrance, no crowd ambience yet.
+  // scene 2 onward = festival chatter, swapping to rain during rain scenes.
+  const ambientTrack = current === 0 ? null : (active ? 'rain' : 'festival');
+  fairAudio.crossfadeAmbient(ambientTrack, 1400);
   if(active) scheduleThunder(); else clearTimeout(thunderTimeoutId);
 }
 
@@ -360,7 +363,6 @@ document.getElementById('btn-start').addEventListener('click', ()=>{
   fairAudio.unlock();
   fairAudio.playSfx('click');
   fairAudio.playBgm('theme', 2000);
-  fairAudio.crossfadeAmbient('festival', 1600);
   current=0; score=0;
   renderScene();
   showScreen('screen-scene');
@@ -431,7 +433,7 @@ function selectChoice(btn, pts, feedbackText, firework, soundName){
     runFireworkShow(0.5, 0.32, 9000);
   }
 
-  const delay = firework ? 9000 : 1900;
+  const delay = 1900;
   setTimeout(()=>{
     current++;
     if(current>=scenes.length){
@@ -488,16 +490,13 @@ document.getElementById('btn-restart').addEventListener('click', ()=>{
 const audioToggleBtn = document.getElementById('audio-toggle-btn');
 const audioPanelBtn = document.getElementById('audio-panel-btn');
 const audioPanel = document.getElementById('audio-panel');
-const iconOn = document.getElementById('icon-sound-on');
-const iconOff = document.getElementById('icon-sound-off');
 const volBgm = document.getElementById('vol-bgm');
 const volAmbient = document.getElementById('vol-ambient');
 const volSfx = document.getElementById('vol-sfx');
 
 function syncAudioUI(){
   const muted = fairAudio.settings.muted;
-  iconOn.hidden = muted;
-  iconOff.hidden = !muted;
+  audioToggleBtn.classList.toggle('is-muted', muted);
   audioToggleBtn.setAttribute('aria-pressed', String(muted));
   audioToggleBtn.setAttribute('aria-label', muted ? 'เปิดเสียง' : 'ปิดเสียง');
   volBgm.value = fairAudio.settings.bgm;
@@ -577,6 +576,80 @@ function roundRectPath(ctx,x,y,w,h,r){
   ctx.closePath();
 }
 
+function drawSparkle(ctx,x,y,size,color){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(0,-size);
+  ctx.quadraticCurveTo(size*0.15,-size*0.15,size,0);
+  ctx.quadraticCurveTo(size*0.15,size*0.15,0,size);
+  ctx.quadraticCurveTo(-size*0.15,size*0.15,-size,0);
+  ctx.quadraticCurveTo(-size*0.15,-size*0.15,0,-size);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawMiniFerris(ctx,x,y,r){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.strokeStyle='rgba(244,185,66,.9)';
+  ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.stroke();
+  const spokeColors=['#ff4fa3','#f4b942','#3fe8c4','#ffe1a3','#ff4fa3','#3fe8c4'];
+  for(let i=0;i<6;i++){
+    const a=(Math.PI*2/6)*i;
+    ctx.strokeStyle='rgba(244,185,66,.55)';
+    ctx.lineWidth=1.6;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+    ctx.stroke();
+    ctx.fillStyle = spokeColors[i];
+    ctx.beginPath(); ctx.arc(Math.cos(a)*r, Math.sin(a)*r, 4,0,Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle='#f4b942';
+  ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawMiniFirework(ctx,x,y,r){
+  ctx.save();
+  ctx.translate(x,y);
+  const colors=['#ff4fa3','#f4b942','#3fe8c4','#ffe1a3'];
+  for(let i=0;i<10;i++){
+    const a=(Math.PI*2/10)*i;
+    const len=r*(0.7+((i*37)%10)/10*0.3);
+    const color=colors[i%colors.length];
+    ctx.strokeStyle=color;
+    ctx.lineWidth=2.4;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(Math.cos(a)*len, Math.sin(a)*len);
+    ctx.stroke();
+    ctx.fillStyle=color;
+    ctx.beginPath(); ctx.arc(Math.cos(a)*len, Math.sin(a)*len, 3,0,Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(0,0,4,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawMiniLantern(ctx,x,y,scale){
+  ctx.save();
+  ctx.translate(x,y);
+  const g=ctx.createRadialGradient(0,0,2,0,0,20*scale);
+  g.addColorStop(0,'#ffe1a3'); g.addColorStop(1,'#f4b942');
+  ctx.fillStyle=g;
+  ctx.shadowColor='#f4b942'; ctx.shadowBlur=22;
+  ctx.beginPath(); ctx.ellipse(0,0,13*scale,17*scale,0,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(120,70,20,.5)'; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.moveTo(-13*scale,0); ctx.lineTo(13*scale,0); ctx.stroke();
+  ctx.restore();
+}
+
 async function buildShareImageBlob(result){
   await (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve());
 
@@ -585,7 +658,31 @@ async function buildShareImageBlob(result){
   canvas.width = W; canvas.height = H;
   const c = canvas.getContext('2d');
 
-  // background
+  const cardX = 70, cardW = W - 140;
+  const innerWidth = cardW - 110;
+
+  // ---- measure content first so the card hugs it — no big empty gap ----
+  c.font = '400 34px Sarabun, sans-serif';
+  const descLines = wrapCanvasText(c, result.desc, innerWidth);
+  const lineHeight = 54;
+
+  const titleMaxWidth = cardW - 100;
+  let titleFontSize = 68;
+  c.font = `800 ${titleFontSize}px Kanit, sans-serif`;
+  while(c.measureText(result.title).width > titleMaxWidth && titleFontSize > 36){
+    titleFontSize -= 2;
+    c.font = `800 ${titleFontSize}px Kanit, sans-serif`;
+  }
+
+  const topPad = 78, eyebrowH = 56, badgeH = 66, titleH = 76, dividerGap = 54;
+  const descBlockH = descLines.length * lineHeight;
+  const decorGap = 50, decorRowH = 74, footerGap = 46, footerH = 34, bottomPad = 64;
+
+  let cardH = topPad + eyebrowH + badgeH + titleH + dividerGap + descBlockH + decorGap + decorRowH + footerGap + footerH + bottomPad;
+  cardH = Math.max(760, Math.min(cardH, 1280));
+  const cardY = Math.max(360, (H - cardH) / 2 + 40);
+
+  // ---- background ----
   const bg = c.createRadialGradient(W*0.5,-100,200, W*0.5,H*0.55,1500);
   bg.addColorStop(0,'#3a1a66');
   bg.addColorStop(0.55,'#1c1044');
@@ -593,10 +690,9 @@ async function buildShareImageBlob(result){
   c.fillStyle = bg;
   c.fillRect(0,0,W,H);
 
-  // scattered stars
   const starSeed = mulberry32(42);
   for(let i=0;i<90;i++){
-    const x = starSeed()*W, y = starSeed()*H*0.75;
+    const x = starSeed()*W, y = starSeed()*H*0.9;
     const r = starSeed()*1.6+0.4;
     c.globalAlpha = 0.25 + starSeed()*0.55;
     c.fillStyle = '#ffffff';
@@ -604,7 +700,7 @@ async function buildShareImageBlob(result){
   }
   c.globalAlpha = 1;
 
-  // hanging bulb garland across the top
+  // hanging bulb garland across the very top
   const bulbColors = ['#ff4fa3','#f4b942','#3fe8c4','#fbf3df'];
   const anchors = [0, W*0.33, W*0.66, W];
   c.lineWidth = 2;
@@ -628,49 +724,38 @@ async function buildShareImageBlob(result){
     }
   }
 
-  // a couple of floating lanterns for atmosphere
-  [[W*0.14,H*0.18],[W*0.86,H*0.27],[W*0.22,H*0.62]].forEach(([lx,ly])=>{
-    const g = c.createRadialGradient(lx,ly,2,lx,ly,26);
-    g.addColorStop(0,'#ffe1a3'); g.addColorStop(1,'#f4b942');
-    c.fillStyle=g;
-    c.shadowColor='#f4b942'; c.shadowBlur=30;
-    c.beginPath(); c.ellipse(lx,ly,15,19,0,0,Math.PI*2); c.fill();
-    c.shadowBlur=0;
+  // floating lanterns for atmosphere — a couple above the card, a couple below it
+  [[W*0.14,H*0.16],[W*0.87,H*0.22],[W*0.16,cardY+cardH+70],[W*0.85,cardY+cardH+50]].forEach(([lx,ly])=>{
+    if(ly < H-40) drawMiniLantern(c, lx, ly, 1.3);
   });
 
-  // card panel
-  const cardX=70, cardY=560, cardW=W-140, cardH=880;
+  // sparkle accents flanking the card top
+  drawSparkle(c, cardX+40, cardY-18, 16, '#3fe8c4');
+  drawSparkle(c, cardX+cardW-40, cardY-18, 16, '#ff4fa3');
+
+  // ---- card panel ----
   roundRectPath(c,cardX,cardY,cardW,cardH,36);
-  c.fillStyle='rgba(18,9,36,.72)';
+  c.fillStyle='rgba(18,9,36,.74)';
   c.fill();
   c.lineWidth=2;
   c.strokeStyle='rgba(244,185,66,.55)';
   c.stroke();
 
   const centerX = W/2;
-  let cy = cardY + 90;
+  let cy = cardY + topPad;
 
-  // eyebrow: game name
   c.textAlign='center';
   c.fillStyle='#3fe8c4';
   c.font='600 30px Kanit, sans-serif';
   c.fillText('ตั๋วปริศนา: ราตรีงานวัด', centerX, cy);
-  cy += 56;
+  cy += eyebrowH;
 
-  // badge
-  c.fillStyle = result.special ? '#ff4fa3' : '#ff4fa3';
+  c.fillStyle = '#ff4fa3';
   c.font='600 26px Kanit, sans-serif';
   c.fillText(result.special ? 'SECRET ENDING ปลดล็อกแล้ว' : 'ผลลัพธ์ของคุณคือ', centerX, cy);
-  cy += 76;
+  cy += badgeH;
 
-  // title — shrink font until it fits within the card width
-  const titleMaxWidth = cardW - 100;
-  let titleFontSize = 68;
-  do{
-    c.font = `800 ${titleFontSize}px Kanit, sans-serif`;
-    titleFontSize -= 2;
-  } while(c.measureText(result.title).width > titleMaxWidth && titleFontSize > 36);
-
+  c.font = `800 ${titleFontSize}px Kanit, sans-serif`;
   const titleGrad = c.createLinearGradient(centerX-200,0,centerX+200,0);
   if(result.special){
     titleGrad.addColorStop(0,'#ff4fa3');
@@ -682,28 +767,46 @@ async function buildShareImageBlob(result){
   }
   c.fillStyle = titleGrad;
   c.fillText(result.title, centerX, cy);
-  cy += 70;
+  cy += titleH;
 
-  // divider
   c.strokeStyle='rgba(244,185,66,.4)';
   c.lineWidth=2;
-  c.beginPath(); c.moveTo(centerX-60,cy); c.lineTo(centerX+60,cy); c.stroke();
-  cy += 56;
+  c.beginPath(); c.moveTo(centerX-60,cy-16); c.lineTo(centerX+60,cy-16); c.stroke();
+  cy += dividerGap - 16;
 
-  // description, wrapped
   c.font='400 34px Sarabun, sans-serif';
   c.fillStyle='rgba(251,243,223,.92)';
-  const descLines = wrapCanvasText(c, result.desc, cardW-110);
-  const lineHeight = 54;
   descLines.forEach(line=>{
     c.fillText(line, centerX, cy);
     cy += lineHeight;
   });
 
-  // footer branding
+  cy += decorGap;
+
+  // decorative bulb-strand divider — pure color/fill, echoes the site's garland motif
+  const dotCount = 9;
+  const dotSpan = innerWidth * 0.72;
+  const dotStartX = centerX - dotSpan/2;
+  for(let i=0;i<dotCount;i++){
+    const dx = dotStartX + (dotSpan/(dotCount-1))*i;
+    const color = bulbColors[i%bulbColors.length];
+    c.fillStyle = color;
+    c.shadowColor = color; c.shadowBlur = 10;
+    c.beginPath(); c.arc(dx, cy - 20, 5, 0, Math.PI*2); c.fill();
+    c.shadowBlur = 0;
+  }
+
+  // three little themed icons so the bottom of the card is never bare
+  const iconY = cy + 18;
+  drawMiniFerris(c, centerX - 130, iconY, 30);
+  drawMiniFirework(c, centerX, iconY, 28);
+  drawMiniLantern(c, centerX + 130, iconY, 1.6);
+  cy += decorRowH;
+
+  cy += footerGap;
   c.font='500 26px Sarabun, sans-serif';
   c.fillStyle='rgba(251,243,223,.55)';
-  c.fillText('เล่นเกมทดสอบตัวตนธีมงานวัด • ตั๋วปริศนา', centerX, H-90);
+  c.fillText('เล่นเกมทดสอบตัวตนธีมงานวัด • ตั๋วปริศนา', centerX, cy);
 
   return await new Promise(resolve=> canvas.toBlob(resolve, 'image/png', 0.95));
 }
@@ -718,23 +821,7 @@ function mulberry32(seed){
   };
 }
 
-async function shareOrDownloadBlob(blob, filename){
-  if(navigator.canShare){
-    try{
-      const file = new File([blob], filename, { type:'image/png' });
-      if(navigator.canShare({ files:[file] })){
-        await navigator.share({
-          files:[file],
-          title:'ตั๋วปริศนา: ราตรีงานวัด',
-          text:'ผลลัพธ์ของฉันจากงานวัดกลางคืน 🎆'
-        });
-        return 'shared';
-      }
-    }catch(err){
-      if(err && err.name === 'AbortError') return 'cancelled';
-      // fall through to download
-    }
-  }
+function downloadBlob(blob, filename){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = filename;
@@ -742,7 +829,6 @@ async function shareOrDownloadBlob(blob, filename){
   a.click();
   a.remove();
   setTimeout(()=>URL.revokeObjectURL(url), 4000);
-  return 'downloaded';
 }
 
 const btnShare = document.getElementById('btn-share');
@@ -759,14 +845,8 @@ btnShare.addEventListener('click', async ()=>{
   try{
     const blob = await buildShareImageBlob(lastEndingResult);
     if(!blob) throw new Error('canvas-to-blob failed');
-    const outcome = await shareOrDownloadBlob(blob, 'temple-fair-ending.png');
-    if(outcome === 'shared'){
-      shareStatus.textContent = 'แชร์เรียบร้อย ✨';
-    } else if(outcome === 'downloaded'){
-      shareStatus.textContent = 'บันทึกรูปแล้ว — นำไปโพสต์ลง IG Story ได้เลย';
-    } else {
-      shareStatus.textContent = '';
-    }
+    downloadBlob(blob, 'temple-fair-ending.png');
+    shareStatus.textContent = 'บันทึกรูปลงเครื่องแล้ว — นำไปโพสต์ลง IG Story ได้เลย';
   }catch(err){
     console.warn('[share] failed to generate image', err);
     shareStatus.textContent = 'สร้างรูปไม่สำเร็จ ลองใหม่อีกครั้งนะ';
