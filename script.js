@@ -132,10 +132,12 @@ function buildBunting(){
       c.setAttribute('cx', pt.x);
       c.setAttribute('cy', pt.y + 5);
       c.setAttribute('r', 5.5);
-      const color = colors[colorIdx % colors.length]; colorIdx++;
+      const color = colors[colorIdx % colors.length];
       c.setAttribute('fill', color);
       c.style.filter = `drop-shadow(0 0 6px ${color})`;
-      c.style.animationDelay = (Math.random()*2)+'s';
+      // sequential delay = a slow twinkle wave travels along the strand, not random
+      c.style.animationDelay = (colorIdx * 0.14) + 's';
+      colorIdx++;
       svg.appendChild(c);
     }
   }
@@ -226,7 +228,7 @@ function flashScreen(){
   setTimeout(()=>fwFlash.classList.remove('pulse'), 90);
 }
 
-function launchFirework(x,y,big){
+function launchFirework(x,y,big,playSound){
   const count = big? 70:30;
   const color = fwColors[Math.floor(Math.random()*fwColors.length)];
   for(let i=0;i<count;i++){
@@ -243,7 +245,7 @@ function launchFirework(x,y,big){
     });
   }
   if(big) flashScreen();
-  fairAudio.playSfx('firework', { volume: big ? 0.85 : 0.3 });
+  if(playSound) fairAudio.playSfx('firework', { volume: big ? 0.85 : 0.3 });
 }
 function loop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -264,11 +266,30 @@ loop();
 function ambientFireworks(){
   if(Math.random()<0.5){
     launchFirework(Math.random()*window.innerWidth*0.7+window.innerWidth*0.15,
-                    Math.random()*window.innerHeight*0.35+40, false);
+                    Math.random()*window.innerHeight*0.35+40, false, false);
   }
   setTimeout(ambientFireworks, 3200+Math.random()*2600);
 }
 ambientFireworks();
+
+/* A ~9s firework "show": several bursts fired over the duration, one
+   firework sound played once at the start (matches the sfx clip length).
+   Used only for the firework scene and the ending — not the ambient sparkle above. */
+function runFireworkShow(centerXFrac, topFrac, durationMs){
+  durationMs = durationMs || 9000;
+  const startTime = performance.now();
+  fairAudio.playSfx('firework', { volume: 0.9 });
+
+  function fireBurst(){
+    const elapsed = performance.now() - startTime;
+    if(elapsed >= durationMs) return;
+    const x = window.innerWidth * (centerXFrac + (Math.random()-0.5)*0.34);
+    const y = window.innerHeight * (topFrac + (Math.random()-0.5)*0.08);
+    launchFirework(x, y, true, false);
+    setTimeout(fireBurst, 500 + Math.random()*650);
+  }
+  fireBurst();
+}
 
 /* ================= RAIN ================= */
 const rainEl = document.getElementById('rain');
@@ -395,9 +416,7 @@ function renderScene(){
     choicesWrap.appendChild(btn);
   });
 
-  const fb=document.getElementById('feedback');
-  fb.textContent='';
-  fb.classList.remove('show');
+  document.getElementById('scene-toast').classList.remove('show');
 }
 
 function selectChoice(btn, pts, feedbackText, firework, soundName){
@@ -406,18 +425,13 @@ function selectChoice(btn, pts, feedbackText, firework, soundName){
   score += pts;
 
   fairAudio.playSfx(soundName || 'select');
-
-  const fb=document.getElementById('feedback');
-  fb.textContent=feedbackText;
-  fb.classList.add('show');
+  showSceneToast(feedbackText);
 
   if(firework){
-    const rect = document.getElementById('screen-scene').getBoundingClientRect();
-    launchFirework(rect.left+rect.width/2, window.innerHeight*0.3, true);
-    setTimeout(()=>launchFirework(rect.left+rect.width*0.25, window.innerHeight*0.25, true), 250);
-    setTimeout(()=>launchFirework(rect.left+rect.width*0.75, window.innerHeight*0.28, true), 500);
+    runFireworkShow(0.5, 0.32, 9000);
   }
 
+  const delay = firework ? 9000 : 1900;
   setTimeout(()=>{
     current++;
     if(current>=scenes.length){
@@ -427,7 +441,16 @@ function selectChoice(btn, pts, feedbackText, firework, soundName){
     } else {
       renderScene();
     }
-  }, 1100);
+  }, delay);
+}
+
+function showSceneToast(text){
+  const toast = document.getElementById('scene-toast');
+  const textEl = document.getElementById('toast-text');
+  toast.classList.remove('show');
+  void toast.offsetWidth; // reflow so the animation restarts cleanly each time
+  textEl.textContent = text;
+  toast.classList.add('show');
 }
 
 /* ================= ENDING ================= */
@@ -450,17 +473,7 @@ function showEnding(){
 
   showScreen('screen-ending');
   fairAudio.playSfx('ending', { volume: special ? 1 : 0.85 });
-
-  const burst=()=>{
-    launchFirework(window.innerWidth*0.3, window.innerHeight*0.3, true);
-    launchFirework(window.innerWidth*0.7, window.innerHeight*0.25, true);
-    launchFirework(window.innerWidth*0.5, window.innerHeight*0.4, true);
-  };
-  burst();
-  if(special){
-    setTimeout(burst, 400);
-    setTimeout(burst, 900);
-  }
+  runFireworkShow(0.5, 0.3, 9000);
 }
 
 document.getElementById('btn-restart').addEventListener('click', ()=>{
