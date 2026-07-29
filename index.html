@@ -47,14 +47,11 @@
 <!-- ============ AUDIO UI (visual novel style) ============ -->
 <div id="audio-ui">
   <button id="audio-toggle-btn" class="audio-btn" aria-label="ปิดเสียง" aria-pressed="false">
-    <svg id="icon-sound-on" viewBox="0 0 24 24" width="20" height="20">
+    <svg viewBox="0 0 24 24" width="20" height="20">
       <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3z"/>
-      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M15.3 8.7a5 5 0 0 1 0 6.6"/>
-      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M17.8 6.2a8.5 8.5 0 0 1 0 11.6"/>
-    </svg>
-    <svg id="icon-sound-off" viewBox="0 0 24 24" width="20" height="20" hidden>
-      <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3z"/>
-      <line x1="2.5" y1="2.5" x2="21.5" y2="21.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path class="sound-wave" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M15.3 8.7a5 5 0 0 1 0 6.6"/>
+      <path class="sound-wave" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M17.8 6.2a8.5 8.5 0 0 1 0 11.6"/>
+      <line class="mute-slash" x1="2.5" y1="2.5" x2="21.5" y2="21.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </svg>
   </button>
   <button id="audio-panel-btn" class="audio-btn small" aria-label="ตั้งค่าเสียง" aria-expanded="false">
@@ -119,8 +116,8 @@
       <div class="btn-row">
         <button class="btn-primary" id="btn-restart">เดินเข้างานวัดอีกครั้ง</button>
         <button class="btn-share" id="btn-share">
-          <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 1 0-3-3c0 .24.04.47.09.7L8.04 9.81A3 3 0 1 0 6 15.19l7.13 4.16c-.05.21-.08.43-.08.65a2.92 2.92 0 1 0 4.95-2.92z"/></svg>
-          บันทึกรูปเพื่อแชร์ลง IG Story
+          <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 3v10.59l3.3-3.3 1.4 1.42L12 17.4l-4.7-5.7 1.4-1.42 3.3 3.3V3h2zM5 19h14v2H5z"/></svg>
+          ดาวน์โหลดรูปผลลัพธ์
         </button>
       </div>
       <p class="share-status" id="share-status"></p>
