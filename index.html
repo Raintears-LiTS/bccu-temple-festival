@@ -42,18 +42,19 @@
 <div class="firework-flash" id="firework-flash"></div>
 <div class="rain" id="rain"></div>
 <div class="thunder-flash" id="thunder-flash"></div>
+<div class="scene-toast" id="scene-toast"><p id="toast-text"></p></div>
 
 <!-- ============ AUDIO UI (visual novel style) ============ -->
 <div id="audio-ui">
   <button id="audio-toggle-btn" class="audio-btn" aria-label="ปิดเสียง" aria-pressed="false">
     <svg id="icon-sound-on" viewBox="0 0 24 24" width="20" height="20">
-      <path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z"/>
-      <path fill="currentColor" d="M16.5 12c0-1.77-.77-3.29-2-4.29v8.58c1.23-1 2-2.52 2-4.29z" opacity=".9"/>
-      <path fill="currentColor" d="M15 4.23v2.06c2.89 1.06 5 3.72 5 6.71s-2.11 5.65-5 6.71v2.06c4.01-1.1 7-4.71 7-8.77s-2.99-7.67-7-8.77z" opacity=".7"/>
+      <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3z"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M15.3 8.7a5 5 0 0 1 0 6.6"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M17.8 6.2a8.5 8.5 0 0 1 0 11.6"/>
     </svg>
     <svg id="icon-sound-off" viewBox="0 0 24 24" width="20" height="20" hidden>
-      <path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z"/>
-      <path fill="currentColor" d="M19.5 12l2.5-2.5-1.4-1.4-2.5 2.5-2.5-2.5-1.4 1.4 2.5 2.5-2.5 2.5 1.4 1.4 2.5-2.5 2.5 2.5 1.4-1.4z"/>
+      <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3z"/>
+      <line x1="2.5" y1="2.5" x2="21.5" y2="21.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </svg>
   </button>
   <button id="audio-panel-btn" class="audio-btn small" aria-label="ตั้งค่าเสียง" aria-expanded="false">
@@ -106,7 +107,6 @@
       </div>
       <div class="scene-text" id="scene-text"></div>
       <div class="choices" id="choices"></div>
-      <p class="feedback" id="feedback"></p>
     </div>
   </section>
 
