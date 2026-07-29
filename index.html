@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ตั๋วปริศนา: ราตรีงานวัด</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500;600;700;800&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="sky">
+  <div class="stars" id="stars"></div>
+  <div class="bunting" id="bunting"></div>
+  <div id="hang-star-layer"></div>
+  <div id="lantern-layer"></div>
+  <div id="rain-splash-layer"></div>
+  <div class="skyline">
+    <svg viewBox="0 0 1200 200" preserveAspectRatio="none">
+      <polygon points="0,200 0,120 40,120 60,80 80,120 130,120 130,90 170,60 210,90 210,120 260,120 260,140 320,140 320,100 350,70 380,100 380,140 440,140 440,110 470,90 500,110 500,140 560,140 560,120 600,90 640,120 640,140 700,140 700,100 730,80 760,100 760,140 820,140 820,115 850,95 880,115 880,140 940,140 940,120 980,95 1020,120 1020,140 1080,140 1080,110 1110,90 1140,110 1140,140 1200,140 1200,200"
+        fill="#150a28"/>
+    </svg>
+  </div>
+  <div id="ferris-wrap">
+    <svg id="ferris-wheel" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="82" fill="none" stroke="#e08a1f" stroke-width="3" opacity=".55"/>
+      <g stroke="#e08a1f" stroke-width="2" opacity=".45">
+        <line x1="100" y1="18" x2="100" y2="182"/>
+        <line x1="18" y1="100" x2="182" y2="100"/>
+        <line x1="42" y1="42" x2="158" y2="158"/>
+        <line x1="158" y1="42" x2="42" y2="158"/>
+      </g>
+      <circle cx="100" cy="100" r="8" fill="#f4b942"/>
+    </svg>
+    <svg id="gondola-ring" viewBox="0 0 200 200" style="position:absolute;inset:0;"></svg>
+  </div>
+</div>
+
+<canvas id="fireworks-canvas"></canvas>
+<div class="firework-flash" id="firework-flash"></div>
+<div class="rain" id="rain"></div>
+<div class="thunder-flash" id="thunder-flash"></div>
+
+<!-- ============ AUDIO UI (visual novel style) ============ -->
+<div id="audio-ui">
+  <button id="audio-toggle-btn" class="audio-btn" aria-label="ปิดเสียง" aria-pressed="false">
+    <svg id="icon-sound-on" viewBox="0 0 24 24" width="20" height="20">
+      <path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z"/>
+      <path fill="currentColor" d="M16.5 12c0-1.77-.77-3.29-2-4.29v8.58c1.23-1 2-2.52 2-4.29z" opacity=".9"/>
+      <path fill="currentColor" d="M15 4.23v2.06c2.89 1.06 5 3.72 5 6.71s-2.11 5.65-5 6.71v2.06c4.01-1.1 7-4.71 7-8.77s-2.99-7.67-7-8.77z" opacity=".7"/>
+    </svg>
+    <svg id="icon-sound-off" viewBox="0 0 24 24" width="20" height="20" hidden>
+      <path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z"/>
+      <path fill="currentColor" d="M19.5 12l2.5-2.5-1.4-1.4-2.5 2.5-2.5-2.5-1.4 1.4 2.5 2.5-2.5 2.5 1.4 1.4 2.5-2.5 2.5 2.5 1.4-1.4z"/>
+    </svg>
+  </button>
+  <button id="audio-panel-btn" class="audio-btn small" aria-label="ตั้งค่าเสียง" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="15" height="15">
+      <path fill="currentColor" d="M19.14 12.94a7.14 7.14 0 0 0 .06-.94 7.14 7.14 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.14 7.14 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.4.32.6.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.24.1.5 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/>
+    </svg>
+  </button>
+  <div id="audio-panel" hidden>
+    <p class="audio-panel-title">ระดับเสียง</p>
+    <label class="audio-slider">
+      <span>เพลงประกอบ</span>
+      <input type="range" id="vol-bgm" min="0" max="1" step="0.05" value="0.55">
+    </label>
+    <label class="audio-slider">
+      <span>บรรยากาศ</span>
+      <input type="range" id="vol-ambient" min="0" max="1" step="0.05" value="0.5">
+    </label>
+    <label class="audio-slider">
+      <span>เอฟเฟกต์</span>
+      <input type="range" id="vol-sfx" min="0" max="1" step="0.05" value="0.7">
+    </label>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- INTRO -->
+  <section class="screen active" id="screen-intro">
+    <div class="card">
+      <p class="eyebrow">ก่อนก้าวเข้าไป</p>
+      <div class="ticket" id="ticket">
+        <div class="front">
+          <h1>ตั๋วปริศนา</h1>
+          <p class="lede">ในค่ำคืนนี้ ลมเย็นพัดผ่านซุ้มประตูไม้เก่า แสงไฟหลากสีจากงานวัดส่องสว่างไปทั่วบริเวณ เสียงหัวเราะ เสียงดนตรี และกลิ่นของอาหารลอยมาตามลม</p>
+          <p class="lede">คุณก้มมองตั๋วในมือ ก่อนจะเห็นข้อความเล็ก ๆ ด้านหลัง…</p>
+          <p class="hint">แตะที่ตั๋วเพื่อพลิกดูด้านหลัง</p>
+        </div>
+        <div class="back">"เดินให้สุดทาง แล้วเจ้าจะได้พบกับตัวตนที่แท้จริง"</div>
+      </div>
+      <button class="btn-primary" id="btn-start">ก้าวเข้าสู่ซุ้มประตู</button>
+    </div>
+  </section>
+
+  <!-- SCENE -->
+  <section class="screen" id="screen-scene">
+    <div class="card">
+      <div class="scene-eyebrow">
+        <span class="eyebrow" id="scene-label" style="margin:0;">ฉากที่ 1</span>
+        <div class="dot-progress" id="dot-progress"></div>
+      </div>
+      <div class="scene-text" id="scene-text"></div>
+      <div class="choices" id="choices"></div>
+      <p class="feedback" id="feedback"></p>
+    </div>
+  </section>
+
+  <!-- ENDING -->
+  <section class="screen" id="screen-ending">
+    <div class="card">
+      <p class="ending-badge" id="ending-badge">ผลลัพธ์ของคุณ</p>
+      <h2 class="ending-title" id="ending-title"></h2>
+      <p class="ending-desc" id="ending-desc"></p>
+      <div class="btn-row">
+        <button class="btn-primary" id="btn-restart">เดินเข้างานวัดอีกครั้ง</button>
+        <button class="btn-share" id="btn-share">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 1 0-3-3c0 .24.04.47.09.7L8.04 9.81A3 3 0 1 0 6 15.19l7.13 4.16c-.05.21-.08.43-.08.65a2.92 2.92 0 1 0 4.95-2.92z"/></svg>
+          บันทึกรูปเพื่อแชร์ลง IG Story
+        </button>
+      </div>
+      <p class="share-status" id="share-status"></p>
+    </div>
+  </section>
+
+</div>
+
+<script src="audio.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
